@@ -20,7 +20,7 @@ let lastProb = null;
   const backends = [['webgpu'], ['webgl'], ['wasm']];
   for (const providers of backends) {
     try {
-      session = await ort.InferenceSession.create('lesion_256_fp16.onnx', { executionProviders: providers });
+      session = await ort.InferenceSession.create('lesion_256.onnx', { executionProviders: providers });
       epEl.textContent = providers[0];
       break;
     } catch (e) { /* try next */ }

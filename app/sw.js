@@ -5,7 +5,7 @@ const ASSETS = [
   './index.html',
   './app.js',
   './manifest.webmanifest',
-  './lesion_256_fp16.onnx',
+  './lesion_256.onnx',
   'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js'
 ];
 
