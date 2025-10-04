@@ -1,5 +1,5 @@
 import torch, onnx
-from app.model import UNetDW512_BR_LACM  # your class
+from model import UNetDW512_BR_LACM  # your class
 
 PT_PATH = "unetdw512_BR_LACM_best (1) (1).pt"   # your 3MB ckpt
 ONNX_OUT = "lesion_256.onnx"

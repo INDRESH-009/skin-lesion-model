@@ -1,48 +1,33 @@
-// Version your cache to refresh users automatically after deploys
-const CACHE = 'lesionseg-v5'; // bump this number;
+const CACHE = 'lesionseg-v6';  // bump this number
 const ASSETS = [
   './',
   './index.html',
   './app.js',
   './manifest.webmanifest',
-  './lesion_256.onnx',
   './ort.min.js',
-  
+  './lesion_256.onnx'  // EXACT same filename as in app.js
 ];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(ASSETS))
-  );
+// install/activate/fetch same as before…
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
   self.skipWaiting();
 });
-
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
-  );
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
   self.clients.claim();
 });
-
-// Cache-first for local assets; network-fallback
-self.addEventListener('fetch', (e) => {
-  const url = new URL(e.request.url);
-
-  // Only handle GET
+self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-
-  // Use cache-first for our app files (including ONNX)
   e.respondWith(
-    caches.match(e.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(e.request).then((resp) => {
-        // Optionally cache new GETs under same cache
+    caches.match(e.request).then(hit => hit ||
+      fetch(e.request, { cache: 'reload' }).then(resp => {
         const clone = resp.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone)).catch(()=>{});
         return resp;
-      }).catch(() => cached);
-    })
+      })
+    )
   );
 });
