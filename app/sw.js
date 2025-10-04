@@ -1,12 +1,17 @@
-const CACHE = 'lesionseg-v6';  // bump this number
+const CACHE = 'lesionseg-v7';   // bump
 const ASSETS = [
   './',
   './index.html',
   './app.js',
   './manifest.webmanifest',
   './ort.min.js',
-  './lesion_256.onnx'  // EXACT same filename as in app.js
+  './lesion_256.onnx',
+  './ort-wasm.wasm',
+  './ort-wasm-simd.wasm',
+  './ort-wasm-threaded.wasm',
+  './ort-wasm-threaded-simd.wasm'
 ];
+
 
 // install/activate/fetch same as before…
 self.addEventListener('install', e => {
