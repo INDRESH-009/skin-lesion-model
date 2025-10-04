@@ -1,5 +1,5 @@
 // Version your cache to refresh users automatically after deploys
-const CACHE = 'lesionseg-v1';
+const CACHE = 'lesionseg-v3'; // bump this number;
 const ASSETS = [
   './',
   './index.html',
