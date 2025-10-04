@@ -23,7 +23,7 @@ let lastProb = null;
 
 ort.env.wasm.wasmPaths = '/';   // absolute: files live at site root
 ort.env.wasm.numThreads = 1;    // avoid SharedArrayBuffer requirements
-ort.env.wasm.simd = true;
+ort.env.wasm.simd = false;
 ort.env.wasm.proxy = false;     // no worker proxy
 const MODEL = '/lesion_256.onnx';
 

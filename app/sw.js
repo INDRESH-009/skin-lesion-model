@@ -1,4 +1,4 @@
-const CACHE = 'lesionseg-v11'; // bump
+const CACHE = 'lesionseg-v12';  // bump
 const ASSETS = [
   './',
   './index.html',
@@ -7,24 +7,24 @@ const ASSETS = [
   './ort.min.js',
   './lesion_256.onnx',
 
-  // legacy wasm binaries
+  // legacy wasm
   './ort-wasm.wasm',
   './ort-wasm-simd.wasm',
   './ort-wasm-threaded.wasm',
   './ort-wasm-threaded-simd.wasm',
 
-  // JSEP loaders + binaries (these were 404 in your console)
+  // JSEP loaders
   './ort-wasm.jsep.mjs',
   './ort-wasm-simd.jsep.mjs',
   './ort-wasm-threaded.jsep.mjs',
   './ort-wasm-simd-threaded.jsep.mjs',
+
+  // JSEP wasm binaries (these were 404)
   './ort-wasm.jsep.wasm',
   './ort-wasm-simd.jsep.wasm',
   './ort-wasm-threaded.jsep.wasm',
   './ort-wasm-simd-threaded.jsep.wasm'
 ];
-
-// (keep your install/activate/fetch handlers the same)
 
 
 self.addEventListener('install', e => {
