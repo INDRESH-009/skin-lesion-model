@@ -1,0 +1,9 @@
+{
+  "name": "Lesion Segmentation (On-Device)",
+  "short_name": "LesionSeg",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": []
+}
