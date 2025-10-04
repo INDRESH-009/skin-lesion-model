@@ -1,4 +1,4 @@
-const CACHE = 'lesionseg-v7';  // bump this each redeploy
+const CACHE = 'lesionseg-v10'; // bump
 const ASSETS = [
   './',
   './index.html',
@@ -9,8 +9,13 @@ const ASSETS = [
   './ort-wasm.wasm',
   './ort-wasm-simd.wasm',
   './ort-wasm-threaded.wasm',
-  './ort-wasm-threaded-simd.wasm'
+  './ort-wasm-threaded-simd.wasm',
+  './ort-wasm.jsep.mjs',
+  './ort-wasm-simd.jsep.mjs',
+  './ort-wasm-threaded.jsep.mjs',
+  './ort-wasm-simd-threaded.jsep.mjs'
 ];
+
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));

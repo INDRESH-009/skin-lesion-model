@@ -21,13 +21,12 @@ let lastProb = null;
     console.log('ORT version:', (typeof ort !== 'undefined') ? ort.version : 'NOT LOADED');
     if (typeof ort === 'undefined') throw new Error('ort.min.js did not load');
 
-    // Tell ORT where to find its .wasm files (same folder as index.html)
-    ort.env.wasm.wasmPaths = './';
-    // Avoid SharedArrayBuffer requirements during debug
-    ort.env.wasm.numThreads = 1;   // single-threaded is fine for our tiny model
-    ort.env.wasm.simd = true;      // allow SIMD if available, safe if not
+ort.env.wasm.wasmPaths = '/';   // absolute: files live at site root
+ort.env.wasm.numThreads = 1;    // avoid SharedArrayBuffer requirements
+ort.env.wasm.simd = true;
+ort.env.wasm.proxy = false;     // no worker proxy
+const MODEL = '/lesion_256.onnx';
 
-    const MODEL = 'lesion_256.onnx';
 
     // Probe model URL (bypass any stale cache)
     const probe = await fetch(`${MODEL}?v=8`, { cache: 'reload' });
