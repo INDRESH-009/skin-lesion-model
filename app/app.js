@@ -1,5 +1,4 @@
 const H = 256, W = 256;
-// ImageNet normalization
 const MEAN = [0.485, 0.456, 0.406];
 const STD  = [0.229, 0.224, 0.225];
 
@@ -15,34 +14,68 @@ const saveBtn= document.getElementById('save');
 let session = null;
 let lastProb = null;
 
+// ---------- HARDEN ORT INIT ----------
 (async () => {
-  // Prefer WebGPU → WebGL → WASM
-  const backends = [['webgpu'], ['webgl'], ['wasm']];
-  for (const providers of backends) {
-    try {
-      session = await ort.InferenceSession.create('lesion_256.onnx', { executionProviders: providers });
-      epEl.textContent = providers[0];
-      break;
-    } catch (e) { /* try next */ }
+  try {
+    // Ensure ORT is loaded
+    console.log('ORT version:', (typeof ort !== 'undefined') ? ort.version : 'NOT LOADED');
+    if (typeof ort === 'undefined') throw new Error('ort.min.js did not load');
+
+    // Tell ORT where to find its .wasm files (same folder as index.html)
+    ort.env.wasm.wasmPaths = './';
+    // Avoid SharedArrayBuffer requirements during debug
+    ort.env.wasm.numThreads = 1;   // single-threaded is fine for our tiny model
+    ort.env.wasm.simd = true;      // allow SIMD if available, safe if not
+
+    const MODEL = 'lesion_256.onnx';
+
+    // Probe model URL (bypass any stale cache)
+    const probe = await fetch(`${MODEL}?v=8`, { cache: 'reload' });
+    console.log('Model fetch:', probe.status, probe.headers.get('content-type'));
+    if (!probe.ok) throw new Error(`Model fetch failed: ${probe.status}`);
+
+    // Prefer WASM first (most robust), then try GPU options
+    const tryEPs = [
+      ['wasm'],
+      ['webgpu'],
+      ['webgl']
+    ];
+
+    let lastErr = null;
+    for (const providers of tryEPs) {
+      try {
+        console.log('Trying EP:', providers[0]);
+        session = await ort.InferenceSession.create(`${MODEL}?v=8`, { executionProviders: providers });
+        epEl.textContent = providers[0];
+        console.log('Initialized with', providers[0]);
+        lastErr = null;
+        break;
+      } catch (e) {
+        console.error('EP failed:', providers[0], e);
+        lastErr = e;
+      }
+    }
+
+    if (!session) throw lastErr || new Error('No backend initialized');
+  } catch (e) {
+    console.error('Init error:', e);
+    alert('Failed to initialize ONNX Runtime Web.');
   }
-  if (!session) { alert('Failed to initialize ONNX Runtime Web.'); }
 })();
+// ---------- END INIT ----------
 
 fileEl.onchange = async () => {
   const f = fileEl.files?.[0];
-  if (!f) return;
+  if (!f || !session) return;
 
-  // show preview
   preview.src = URL.createObjectURL(f);
   await new Promise(r => preview.onload = r);
 
-  // draw to temp canvas at 256×256
   const tmp = document.createElement('canvas');
   tmp.width = W; tmp.height = H;
   const tctx = tmp.getContext('2d', { willReadFrequently: true });
   tctx.drawImage(preview, 0, 0, W, H);
 
-  // HWC uint8 → NCHW float32 with mean/std
   const rgba = tctx.getImageData(0, 0, W, H).data;
   const chw = new Float32Array(1 * 3 * H * W);
   let oR = 0, oG = H*W, oB = 2*H*W;
@@ -58,21 +91,16 @@ fileEl.onchange = async () => {
 
   const feeds = { input: new ort.Tensor('float32', chw, [1,3,H,W]) };
 
-  // warmup
-  await session.run(feeds);
-
-  // timed run
+  await session.run(feeds); // warm
   const t0 = performance.now();
   const out = await session.run(feeds);
   const t1 = performance.now();
   latEl.textContent = Math.round(t1 - t0);
 
-  // logits → sigmoid
-  const logits = out.logits.data; // flattened [1,1,H,W]
+  const logits = out.logits.data;
   const N = H * W;
   lastProb = new Float32Array(N);
   for (let i = 0; i < N; i++) lastProb[i] = 1 / (1 + Math.exp(-logits[i]));
-
   renderOverlay();
 };
 
@@ -84,21 +112,19 @@ function renderOverlay(){
   const im = ctx.createImageData(W, H);
   for (let i = 0; i < H*W; i++) {
     const m = lastProb[i] > thr ? 255 : 0;
-    // red overlay, 50% alpha
     im.data[i*4+0] = 255;
     im.data[i*4+1] = 0;
     im.data[i*4+2] = 0;
-    im.data[i*4+3] = Math.round(m * 0.5); // 0..127
+    im.data[i*4+3] = Math.round(m * 0.5);
   }
   ctx.putImageData(im, 0, 0);
 }
 
 saveBtn.onclick = () => {
   if (!lastProb) return;
-  const thr = parseFloat(thrEl.value);
   const im = ctx.createImageData(W, H);
   for (let i = 0; i < H*W; i++) {
-    const v = lastProb[i] > thr ? 255 : 0;
+    const v = lastProb[i] > parseFloat(thrEl.value) ? 255 : 0;
     im.data[i*4+0] = v; im.data[i*4+1] = v; im.data[i*4+2] = v; im.data[i*4+3] = 255;
   }
   ctx.putImageData(im, 0, 0);
@@ -106,5 +132,5 @@ saveBtn.onclick = () => {
   a.download = 'mask_256.png';
   a.href = canvas.toDataURL('image/png');
   a.click();
-  renderOverlay(); // restore overlay view
+  renderOverlay();
 };

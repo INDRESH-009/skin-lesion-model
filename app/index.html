@@ -54,12 +54,15 @@
   <footer>Research prototype. Not a diagnostic device.</footer>
 
   <script>
-    // Register service worker for offline
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(console.error);
-      });
-    }
-  </script>
+  // TEMP: disable SW while we debug init; set to true later
+  const ENABLE_SW = false;
+  if ('serviceWorker' in navigator && ENABLE_SW) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(console.error);
+    });
+  }
+</script>
+
+
 </body>
 </html>
