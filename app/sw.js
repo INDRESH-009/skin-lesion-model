@@ -1,12 +1,13 @@
 // Version your cache to refresh users automatically after deploys
-const CACHE = 'lesionseg-v3'; // bump this number;
+const CACHE = 'lesionseg-v5'; // bump this number;
 const ASSETS = [
   './',
   './index.html',
   './app.js',
   './manifest.webmanifest',
   './lesion_256.onnx',
-  'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js'
+  './ort.min.js',
+  
 ];
 
 self.addEventListener('install', (e) => {
